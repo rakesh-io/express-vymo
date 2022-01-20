@@ -11,7 +11,7 @@ const createPlaceValidations = [
     body('title').not().isEmpty(),
     body('description').not().isEmpty(),
     body('address').not().isEmpty(),
-]
+];
 
 router.get('/getPlaceByPlaceId/:placeId', async function(req, res, next) {
     const placeId = req.params.placeId;
@@ -143,5 +143,21 @@ router.delete('/deletePlace/:placeId', async function(req, res, next) {
     res.status(200).json({ message: "Deleted the place" });
 
 })
+
+router.put('/updatePlace/:pid', async (req, res, next) => {
+    const { title, description } = req.body;
+    const placeId = req.params.pid;
+  
+    let place;
+    try {
+      place = await Place.findByIdAndUpdate(placeId, { title, description });
+    } catch (err) {
+      console.log(err);
+      const error = createHttpError('Something went wrong, could not update place.', 500);
+      return next(error);
+    }
+  
+    res.status(200).json({ message: "updated successfully" });
+  });
 
 module.exports = router;
