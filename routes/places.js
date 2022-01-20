@@ -17,14 +17,14 @@ router.get('/getPlaceByPlaceId/:placeId', async function(req, res, next) {
     const placeId = req.params.placeId;
     let place;
     try {
-        place = Place.findById(placeId).exec();
+        place = await Place.findById(placeId).exec();
     } catch (err) {
         console.log(err);
         const error = createHttpError('Failed to get the place. Please try later', 500);
         return next(error);
     }
 
-    if (!place.length) {
+    if (!place) {
         const error = createHttpError('No such place exists with the place ID provided.', 404);
         return next(error);
     }
@@ -36,12 +36,14 @@ router.get('/getPlaceByUserId/:userId', async function(req, res, next) {
     const userId = req.params.userId;
     let existingUser;
     try {
-        existingUser = User.findById(userId).exec();
+        existingUser = await User.findById(userId).exec();
     } catch (err) {
         console.log(err);
         const error = createHttpError('Failed to get the user. Please try later', 500);
         return next(error);
     }
+
+    console.log(existingUser);
 
     if (!existingUser) {
         const error = createHttpError('No such user exists with the user ID provided.', 404);
@@ -50,19 +52,19 @@ router.get('/getPlaceByUserId/:userId', async function(req, res, next) {
 
     let places;
     try {
-        places = Place.find({ creator: userId }).exec()
+        places = await Place.find({ creator: userId }).exec()
     } catch (err) {
         console.log(err);
         const error = createHttpError('Failed to get the places. Please try later', 500);
         return next(error);
     }
 
-    if (!places.length) {
+    if (!places) {
         const error = createHttpError('No places exists with the user ID provided.', 404);
         return next(error);
     }
 
-    res.status(200).json({ places: places.toObject()});
+    res.status(200).json({ places: places.map(place => place.toObject()) });
 
 });
 
