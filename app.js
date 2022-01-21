@@ -12,10 +12,10 @@ mongoose.connect(URL).then(() => {
   console.log('Conection fail', err);
 });
 
-var indexRouter = require('./routes/index');
-var usersRouter = require('./routes/users');
-var productsRouter = require('./routes/products');
-var placesRouter = require('./routes/places');
+var indexRouter = require('./routes/index.route');
+var usersRouter = require('./routes/users.route');
+var productsRouter = require('./routes/products.route');
+var placesRouter = require('./routes/places.route');
 
 var app = express();
 
