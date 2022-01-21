@@ -100,6 +100,7 @@ router.post('/createPlace', createPlaceValidations, async function (req, res, ne
         existingUser.places.push(newPlace);
         await existingUser.save({ session });
         await session.commitTransaction();
+        session.endSession();
     } catch (err) {
         console.log(err);
         const error = createHttpError('Creating place failed. Try again later', 500);
@@ -144,10 +145,9 @@ router.delete('/deletePlace/:placeId', async function(req, res, next) {
 
 })
 
-router.put('/updatePlace/:pid', async (req, res, next) => {
+router.put('/updatePlace/:placeId', async (req, res, next) => {
     const { title, description } = req.body;
-    const placeId = req.params.pid;
-  
+    const placeId = req.params.placeId;
     let place;
     try {
       place = await Place.findByIdAndUpdate(placeId, { title, description });
@@ -156,7 +156,6 @@ router.put('/updatePlace/:pid', async (req, res, next) => {
       const error = createHttpError('Something went wrong, could not update place.', 500);
       return next(error);
     }
-  
     res.status(200).json({ message: "updated successfully" });
   });
 

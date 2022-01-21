@@ -1,6 +1,7 @@
 var express = require('express');
 const { body, validationResult } = require('express-validator');
 const createHttpError = require('http-errors');
+const md5 = require('md5');
 const User = require('../models/user');
 var router = express.Router();
 
@@ -13,9 +14,9 @@ const signUpValidations = [
 router.get('/getUsers', async function(req, res, next) {
   try {
     const results = await User.find({}, '-password').exec();
-    res.json(results);
+    res.status(200).json(results);
   } catch (err) {
-    const error = createHttpError('Fetching the users failed. Please try again later!', 400);
+    const error = createHttpError('Fetching the users failed. Please try again later!', 500);
     console.log(err);
     return next(error);
   }
@@ -29,7 +30,8 @@ router.post('/signup', signUpValidations, async function(req, res, next) {
     return next(error);
   }
 
-  const { name, email, password, image } = req.body;
+  const { name, email, image } = req.body;
+  const password = md5(req.body.password);
   let existingUser;
   try {
     existingUser = await User.find({ email });
@@ -55,29 +57,31 @@ router.post('/signup', signUpValidations, async function(req, res, next) {
   }
   res.status(201).json({ user: userObj.toObject() });
 });
+router.post('/signin', async (req, res, next) => {
+  const { email, password } = req.body;
+  const md5EncrytedReqPass = md5(password); // sha256, sha512
+  let existingUser;
+  try {
+    existingUser = await User.findOne({ email }).exec();
+  } catch (err) {
+    console.log(err);
+    const error = createHttpError('Something went wrong please try later', 500);
+    return next(error);
+  }
+
+  if (existingUser.password !== md5EncrytedReqPass) {
+    const error = createHttpError("Incorrect Email or Password.", 403);
+    return next(error)
+  }
+
+  res.status(200).json({ message: "Sign in successful!"});
+
+})
 
 module.exports = router;
 
-// const obj = {
-//   name: '',
-//   place: '',
-//   address: ''
-// }
-
-// const name = obj.name;
-// const place = obj.place;
-// const address = obj.address;
-
-// const { name, place, address } = obj; // destructuring an object
-
-// const obj2 = {
-//   name: name,
-//   place: place,
-//   address: address
-// }
-
-// const obj2 = {
-//   name,
-//   place,
-//   address
-// }
+// 1. Add a todo item -> should go into pending state automatically (or take a param for initial state).
+// 2. I should be able to move a todo from pending to either inprogress or completed state.
+// 3. I should be able to move a todo from inprogress to either pending or completed state.
+// 4. I should be able to move a todo from completed to either pending or inprogress state.
+// 5. I should be able to delete a todo.
